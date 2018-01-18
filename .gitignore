@@ -99,3 +99,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+.idea/AliPhotoGraber.iml
+.idea/dictionaries/User.xml
+.idea/modules.xml
+.idea/workspace.xml
+.idea/vcs.xml
+.idea/misc.xml

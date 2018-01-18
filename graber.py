@@ -5,7 +5,7 @@ import re,os, time
 
 category_page = 'https://ru.aliexpress.com/af/category/202032003.html'
 category_page = 'https://ru.aliexpress.com/category/202002389/bras.html'
-category_page = 'https://ru.aliexpress.com/category/202005131/stockings.html'
+#category_page = 'https://ru.aliexpress.com/category/202005131/stockings.html'
 
 proxies = {
   'http': 'http://67.78.143.182:8080',
@@ -19,6 +19,7 @@ page_num=1
 while True: # pages loop
     page_num_str = '?page=' + str(page_num)
     html_doc = requests.get(category_page+page_num_str, proxies = proxies)
+    # html_doc = requests.get(category_page+page_num_str)
     print (html_doc)
     soup = BeautifulSoup(html_doc.text, 'html.parser')
     page_items_links = soup.find_all(href=re.compile("item"), class_='picRind ')
@@ -26,12 +27,12 @@ while True: # pages loop
         for link in page_items_links:
             #print(link['href'])
             links.append('https:'+link['href'])
-        print('page_num=',page_num)
-        print('items count =',len(page_items_links))
+        print('page_num=',page_num,'items count =',len(page_items_links))
         page_num = page_num + 1
-        time.sleep(3)
+        time.sleep(2)
     else:
         break
+    if page_num == 20: break #limit total pages count
 
 feedbacks_pages = []
 
@@ -54,8 +55,10 @@ for item in links: # items loop
                        'productId': productId,
                        'page': cur_page,
                        'withPictures': 'true'}
+
             page = requests.post('https://feedback.aliexpress.com/display/productEvaluation.htm#feedback-list',
                                  data=payload)
+
             soup = BeautifulSoup(page.text, 'html.parser')
 
             feedback_items = soup.find_all('dl', class_='buyer-review')
@@ -78,5 +81,5 @@ for item in links: # items loop
                         f.write(file.content)
                     cnt = cnt + 1
                     import time
-                    time.sleep(1)
+                time.sleep(2)
             cur_page = cur_page + 1

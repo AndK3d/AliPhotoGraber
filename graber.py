@@ -1,27 +1,63 @@
 from bs4 import BeautifulSoup
 import requests
+from requests.auth import HTTPBasicAuth
 import re,os, time
+
+def save_html(page_content):
+    filename = 'page.html'
+
+    try:
+        file = open(filename, 'at')
+    except IOError as e:
+        print('error opening file')
+    else:
+        with file:
+            file.write(page_content)
+            file.close()
+
+
+def login():
+    login_page = 'https://login.aliexpress.com'
+    user = ''
+    passwd = ''
+
+    s = requests.Session()
+    s.auth = (user,passwd)
+    s.get(login_page)
+    return s
+
+
+s = login()
 
 
 category_page = 'https://ru.aliexpress.com/af/category/202032003.html'
-category_page = 'https://ru.aliexpress.com/category/202002389/bras.html'
+category_page = 'https://ru.aliexpress.com/category/202002389/bras.html?SortType=total_tranpro_desc'
+category_page = 'https://ru.aliexpress.com/category/202003562/panties.html?SortType=total_tranpro_desc'
+category_page = 'https://ru.aliexpress.com/category/202003566/bustiers-corsets.html?SortType=total_tranpro_desc'
+
 #category_page = 'https://ru.aliexpress.com/category/202005131/stockings.html'
+
 
 proxies = {
   'http': 'http://67.78.143.182:8080',
   'https': 'http://67.78.143.182:8080',
-}
+    }
+
+headers = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 6.3; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0'
+    }
+
 
 ### Collect all items links from all pages in category in links[] list###
-
 links = []
 page_num=1
 while True: # pages loop
-    page_num_str = '?page=' + str(page_num)
-    html_doc = requests.get(category_page+page_num_str, proxies = proxies)
-    # html_doc = requests.get(category_page+page_num_str)
-    print (html_doc)
-    soup = BeautifulSoup(html_doc.text, 'html.parser')
+    print (page_num)
+    page_num_str = '&page=' + str(page_num)
+    # html_doc = requests.get(category_page+page_num_str, proxies = proxies)
+    r = s.get(category_page+page_num_str, headers = headers)
+    #save_html(r.text)
+    soup = BeautifulSoup(r.text, 'html.parser')
     page_items_links = soup.find_all(href=re.compile("item"), class_='picRind ')
     if len(page_items_links)>0: # if no more items on page - break loop
         for link in page_items_links:
@@ -32,9 +68,12 @@ while True: # pages loop
         time.sleep(2)
     else:
         break
-    if page_num == 20: break #limit total pages count
+    if page_num == 2: break #limit total pages count
 
 feedbacks_pages = []
+
+if not os.path.exists('pics'):
+    os.mkdir('pics')
 
 for item in links: # items loop
     print('Current item:',item)
@@ -83,3 +122,4 @@ for item in links: # items loop
                     import time
                 time.sleep(2)
             cur_page = cur_page + 1
+
